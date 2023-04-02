@@ -11,6 +11,7 @@
 #include <deque>
 #include <unistd.h>
 #include <functional>
+#include <iostream>
 
 
 
@@ -27,23 +28,34 @@ class threadPoll{
         sem_t request_count;
         pthread_mutex_t request_list_locker;
         //pthread_mutex_t threads_vector_locker;
+        T* mainthread;
 
     public:
-        threadPoll(){
-            close=false;
+        threadPoll(T* main):mainthread(main),close(false){
 
+            //*****************************initialize
             threads_num=core_threads_num;
             pthread_mutex_init(&request_list_locker,NULL);
             //pthread_mutex_init(&threads_vector_locker,NULL);
             sem_init(&request_count,0,0);
 
+
+            //*****************************create main thread 
+            pthread_t main_tid;
+            pthread_create(&main_tid,NULL,mainThread,(void*)this);
+            pthread_detach(main_tid);
+            int priority = sched_get_priority_max(SCHED_FIFO);
+            pthread_setschedprio(main_tid,priority);
+
+            //*****************************create work thread 
             for(int i=0;i<threads_num;i++){
                 pthread_t thread_id;
                 pthread_create(&thread_id,NULL,work,(void*)this);
                 threads.push_back(thread_id);
                 pthread_detach(threads[i]);
             }
-
+            
+            //*****************************create monitor
             pthread_t monitor_t;
             pthread_create(&monitor_t,NULL,Monitor,(void*)this);
             pthread_detach(monitor_t);
@@ -53,12 +65,6 @@ class threadPoll{
         ~threadPoll(){
             close=true;
         }
-        
-        static void* Monitor(void*a);
-        void* _Monitor(void*a);
-        
-        static void* work(void*a);
-        void* _work(void*a);
 
         void append(T *t){
             pthread_mutex_lock(&request_list_locker);
@@ -66,8 +72,31 @@ class threadPoll{
             sem_post(&request_count);
             pthread_mutex_unlock(&request_list_locker);
         }
+        
+
+        
+    private:
+        static void* Monitor(void*a);
+        void* _Monitor(void*a);
+        
+        static void* work(void*a);
+        void* _work(void*a);
+
+        static void* mainThread(void*a);
+        void* _mainThread(void*a);
+
+        
 };
 
+
+
+
+
+
+
+
+
+//*********************************************************************              
 template <typename T>
 void* threadPoll<T>::_work(void*){
     
@@ -87,6 +116,7 @@ void* threadPoll<T>::_work(void*){
     return nullptr;
 }
 
+//*********************************************************************              
 template <typename T>
 void* threadPoll<T>::_Monitor(void*){
     while(true){
@@ -109,8 +139,36 @@ void* threadPoll<T>::_Monitor(void*){
     return nullptr;
 }
 
+
+//*********************************************************************              
+template <typename T>
+void* threadPoll<T>::_mainThread(void*a){
+    while(true){
+        if(close){exit(0);}
+        mainthread->first(mainthread->second);
+    }
+    
+    return a;
+}
+
+
+
+
+
+
+//*********************************************************************              
+template <typename T>
+void *threadPoll<T>::mainThread(void*a){
+    std::cout<<"main thread id : "<<gettid()<<std::endl;
+    threadPoll *temp=(threadPoll*)a;
+    temp->_mainThread(a);
+    return temp;
+}
+
+//*********************************************************************              
 template <typename T>
 void* threadPoll<T>::Monitor(void*a){
+    std::cout<<"Monitor id : "<<gettid()<<std::endl;
     threadPoll *temp=(threadPoll*)a;
     temp->_Monitor(a);
     return temp;

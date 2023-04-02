@@ -1,20 +1,25 @@
 #include <iostream>
-#include "../include/threadpoll.h"
+#include "../include/server.h"
 
-void *fun(void *);
+// void *fun(void *);
+// void *mfun(void *);
 
 int main(){
-    int arg;
-    typedef std::pair<void*(*)(void*),void*> T;
-    T t[100];
-    int x[100];
+    // int arg;
+    // typedef std::pair<void*(*)(void*),void*> T;
+    // T t[100];
+    // int x[100];
 
-    threadPoll<T>poll;
-    for(int i=0;i<100;i++){
-        x[i]=i;
-        t[i]=T(fun,(void*)&x[i]);
-        poll.append(&t[i]);
-    }
+    // T temp(mfun,NULL);
+    // threadPoll<T>poll(&temp);
+    // for(int i=0;i<100;i++){
+    //     x[i]=i;
+    //     t[i]=T(fun,(void*)&x[i]);
+    //     poll.append(&t[i]);
+    // }
+
+
+
     // threadPoll<T>poll;
     // pthread_mutex_lock(&poll.request_list_locker);
     // for(int i=0;i<100;i++){
@@ -24,11 +29,39 @@ int main(){
     //     sem_post(&poll.request_count);
     // }
     // pthread_mutex_unlock(&poll.request_list_locker);
+
+
+    typedef std::pair<void*(*)(void*),void*> T;
+    server<T> ser(9190);
+    char q;
+    while(true){
+        std::cin>>q;
+        if(q=='q'){
+            ser.clo();
+            return 0;
+        }
+    }
+    
+    
+
+
+
+
+
     getchar();
+    return 0;
 }
 
-void *fun(void*arg){
-    std::cout<<"thread id:"<<gettid()<<"       deal with number "<<*(int*)arg<<std::endl;
-    sleep(0.1);
-    return nullptr;
-}
+// void *fun(void*arg){
+//     std::cout<<"thread id:"<<gettid()<<"       deal with number "<<*(int*)arg<<std::endl;
+//     sleep(0.2);
+//     std::cout<<"number "<<*(int*)arg<<" done"<<std::endl;
+//     return nullptr;
+// }
+// void *mfun(void*arg){
+//     for(int i=0;i<110;i++){
+//         std::cout<<"main"<<std::endl;
+//         sleep(0.2);
+//     }
+//     return nullptr;
+// }

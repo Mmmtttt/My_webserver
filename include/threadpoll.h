@@ -19,7 +19,7 @@ template  <typename T>
 class threadPoll{
     private:
         bool close=false;
-        int threads_num;
+        int threads_num=3;
         int core_threads_num=3;
         int max_threads_num=20;
 
@@ -31,7 +31,7 @@ class threadPoll{
         T* mainthread;
 
     public:
-        threadPoll(T* main=NULL):mainthread(main),close(false){
+        threadPoll(T* maint=NULL):mainthread(maint),close(false){
 
             //*****************************initialize
             threads_num=core_threads_num;
@@ -41,7 +41,7 @@ class threadPoll{
 
 
             //*****************************create main thread (alternative)
-            if(main!=NULL){
+            if(maint!=NULL){
                 pthread_t main_tid;
                 pthread_create(&main_tid,NULL,mainThread,(void*)this);
                 pthread_detach(main_tid);

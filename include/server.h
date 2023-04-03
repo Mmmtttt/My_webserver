@@ -9,7 +9,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
-#include <threadpoll.h>
+#include "threadpoll.h"
 
 template <typename T>
 class server{
@@ -35,6 +35,7 @@ class server{
 
     private:
         void initial(){
+            server_sock=socket(PF_INET,SOCK_STREAM,0);
             sockaddr_in serv_addr;
             memset(&serv_addr,0,sizeof(serv_addr));
             serv_addr.sin_family=AF_INET;

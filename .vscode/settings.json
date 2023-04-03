@@ -51,5 +51,6 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

@@ -31,7 +31,7 @@ class threadPoll{
         T* mainthread;
 
     public:
-        threadPoll(T* main):mainthread(main),close(false){
+        threadPoll(T* main=NULL):mainthread(main),close(false){
 
             //*****************************initialize
             threads_num=core_threads_num;
@@ -40,13 +40,14 @@ class threadPoll{
             sem_init(&request_count,0,0);
 
 
-            //*****************************create main thread 
-            pthread_t main_tid;
-            pthread_create(&main_tid,NULL,mainThread,(void*)this);
-            pthread_detach(main_tid);
-            int priority = sched_get_priority_max(SCHED_FIFO);
-            pthread_setschedprio(main_tid,priority);
-
+            //*****************************create main thread (alternative)
+            if(main!=NULL){
+                pthread_t main_tid;
+                pthread_create(&main_tid,NULL,mainThread,(void*)this);
+                pthread_detach(main_tid);
+                int priority = sched_get_priority_max(SCHED_FIFO);
+                pthread_setschedprio(main_tid,priority);
+            }
             //*****************************create work thread 
             for(int i=0;i<threads_num;i++){
                 pthread_t thread_id;

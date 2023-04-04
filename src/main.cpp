@@ -34,10 +34,13 @@ int main(){
     typedef std::pair<void*(*)(void*),void*> T;
     server<T> ser(9191);
     char q;
+    // sleep(5);
+    // ser.thread_num()=2;
     while(true){
         std::cin>>q;
         if(q=='q'){
             ser.clo();
+            sleep(5);
             return 0;
         }
     }

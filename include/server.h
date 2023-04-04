@@ -15,7 +15,7 @@ template <typename T>
 class server{
     private:
         bool _close=false;
-        int epoll_size=50;
+        int epoll_size=100;
 
         int port;
         int server_sock;
@@ -32,6 +32,7 @@ class server{
             threadpoll=new threadPoll<T>(t);
         }
         ~server(){delete threadpoll;delete t;delete[]events;}
+        int& thread_num(){return threadpoll->thread_num();}
 
     private:
         void initial(){
@@ -62,6 +63,12 @@ class server{
         }
         void* _epoll_loop(void*){
             //std::cout<<"epoll wait"<<std::endl;
+            if(_close){
+                close(server_sock);
+                close(epoll_fd);
+                threadpoll->clos();
+                return NULL;
+            }
             int event_count=epoll_wait(epoll_fd,events,epoll_size,3000);
             //std::cout<<"epoll wait ok  , count = "<<event_count<<std::endl;
             for(int i=0;i<event_count;i++){
@@ -83,11 +90,6 @@ class server{
                     threadpoll->append(t);
                 }
             }
-            if(_close){
-                close(server_sock);
-                close(epoll_fd);
-                return NULL;
-            }
             return NULL;
         }
 
@@ -95,6 +97,8 @@ class server{
             //std::cout<<"handler"<<std::endl;
             server<T> *s=(server<T> *)(((std::pair<void*,void*>*)arg)->first);
             s->_handler(((std::pair<void*,void*>*)arg)->second);
+            delete (int*)(((std::pair<void*,void*>*)arg)->second);
+            delete (std::pair<void*,void*>*)arg;
             return NULL;
         }
         void*_handler(void*temp_fd){

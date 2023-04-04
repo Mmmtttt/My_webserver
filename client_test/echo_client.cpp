@@ -12,15 +12,18 @@
 typedef std::pair<void*(*)(void*),void*> T;
 char s[40]="message from socket id : ";
 void*handle(void*arg);
+sockaddr_in serv_addr;
 
-#define NUM 1000
+#define NUM 127995
+
+int sock[NUM];
 
 int main(){
-    int sock[NUM];
+    
     T*t[NUM];
 
     //sock=socket(PF_INET,SOCK_STREAM,0);
-    sockaddr_in serv_addr;
+    
 
     memset(&serv_addr,0,sizeof(serv_addr));
 
@@ -32,33 +35,45 @@ int main(){
     threadPoll<T> poll(NULL);
     for(int i=0;i<NUM;i++){
         sock[i]=socket(PF_INET,SOCK_STREAM,0);
-        if(connect(sock[i],(sockaddr*)&serv_addr,sizeof(serv_addr))==-1)std::cout<<"connect error"<<std::endl;
-        std::pair<int,int> *arg=new std::pair<int,int>(sock[i],i);
+        if(sock[i]==-1){std::cout<<"socket create error "<<i<<std::endl;return 0;}
+        
+        //std::pair<int,int> *arg=new std::pair<int,int>(sock[i],i);
+        int *arg=new int (i);
         
         t[i]=new T(handle,(void*)arg);
+    }
+
+    for(int i=0;i<NUM;i++){
+        
+
         poll.append(t[i]);
     }
+
+
+    std::cout<<"done"<<std::endl;
     getchar();
-    for(int i=0;i<NUM;i++){
-        delete t[i];
-    }
+    // for(int i=0;i<NUM;i++){
+    //     delete t[i];
+    // }
     
 
     return 0;
 
 }
 void*handle(void*arg){
+    std::cout<<sock[*(int*)arg]<<std::endl;
+    if(connect(sock[*(int*)arg],(sockaddr*)&serv_addr,sizeof(serv_addr))==-1){std::cout<<"connect error"<<std::endl;return NULL;}
 
     char ss[40];
     strcpy(ss,s);
     char num[10];
-    sprintf(num,"%d",((std::pair<int,int>*)arg)->second);
+    sprintf(num,"%d",*(int*)arg);
     strcat(ss,num);
     std::cout<<ss<<std::endl;
-    write(((std::pair<int,int>*)arg)->first,num,10);
+    write(sock[*(int*)arg],num,10);
     //std::cout<<"write ok"<<std::endl;
     char p[40];
-    read(((std::pair<int,int>*)arg)->first,p,40);
+    read(sock[*(int*)arg],p,40);
     p[39]='\0';
     std::cout<<p<<std::endl;
     return NULL;

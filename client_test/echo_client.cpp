@@ -14,7 +14,7 @@ char s[40]="message from socket id : ";
 void*handle(void*arg);
 sockaddr_in serv_addr;
 
-#define NUM 127995
+#define NUM 127996
 
 int sock[NUM];
 
@@ -76,5 +76,7 @@ void*handle(void*arg){
     read(sock[*(int*)arg],p,40);
     p[39]='\0';
     std::cout<<p<<std::endl;
+    close(sock[*(int*)arg]);
+    delete (int*)arg;
     return NULL;
 }
